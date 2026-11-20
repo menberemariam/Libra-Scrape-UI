@@ -39,10 +39,7 @@ class ItemModel {
         (e) => e.name == json['type'],
         orElse: () => ItemType.book,
       ),
-      source: ItemSource.values.firstWhere(
-        (e) => e.name == json['source'],
-        orElse: () => ItemSource.standardEbooks,
-      ),
+      source: ItemSource.fromApi(json['source'] as String?),
       sourceUrl: json['sourceUrl'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
@@ -58,7 +55,7 @@ class ItemModel {
       'coverUrl': coverUrl,
       'downloadUrls': downloadUrls,
       'type': type.name,
-      'source': source.name,
+      'source': source.apiValue,
       'sourceUrl': sourceUrl,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -73,4 +70,19 @@ class ItemModel {
 
 enum ItemType { book, audiobook }
 
-enum ItemSource { librivox, standardEbooks }
+enum ItemSource {
+  librivox('librivox'),
+  standardEbooks('standard_ebooks');
+
+  const ItemSource(this.apiValue);
+
+  /// Value used by the backend (e.g. `standard_ebooks`).
+  final String apiValue;
+
+  static ItemSource fromApi(String? value) {
+    return ItemSource.values.firstWhere(
+      (e) => e.apiValue == value || e.name == value,
+      orElse: () => ItemSource.standardEbooks,
+    );
+  }
+}

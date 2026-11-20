@@ -1,9 +1,10 @@
 // lib/widgets/item_card.dart
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../models/item_model.dart';
+import '../config/app_theme.dart';
+import 'book_cover.dart';
 
-class ItemCard extends StatelessWidget {
+class ItemCard extends StatefulWidget {
   final ItemModel item;
   final VoidCallback onTap;
 
@@ -14,133 +15,132 @@ class ItemCard extends StatelessWidget {
   });
 
   @override
+  State<ItemCard> createState() => _ItemCardState();
+}
+
+class _ItemCardState extends State<ItemCard> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover Image
-            Expanded(
-              flex: 3,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: item.displayCoverUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey.shade200,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          item.isAudiobook ? Icons.headphones : Icons.book,
-                          size: 32,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item.title,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade600,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _hovered
+                ? scheme.primary.withValues(alpha: 0.28)
+                : scheme.outline,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: scheme.shadow.withValues(
+                alpha: _hovered ? 0.16 : 0.06,
               ),
-            ),
-            
-            // Content
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Type Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: item.isAudiobook 
-                            ? Colors.purple.shade100 
-                            : Colors.blue.shade100,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        item.typeDisplayName,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: item.isAudiobook 
-                              ? Colors.purple.shade700 
-                              : Colors.blue.shade700,
-                        ),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 4),
-                    
-                    // Title
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    
-                    const SizedBox(height: 2),
-                    
-                    // Author
-                    Text(
-                      item.author,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey.shade600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    
-                    const Spacer(),
-                    
-                    // Genre
-                    if (item.genres.isNotEmpty)
-                      Text(
-                        item.primaryGenre,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.grey.shade500,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-              ),
+              blurRadius: _hovered ? 22 : 10,
+              offset: Offset(0, _hovered ? 10 : 4),
             ),
           ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(7),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AspectRatio(
+                    aspectRatio: 3 / 4,
+                    child: BookCover(
+                      title: widget.item.title,
+                      author: widget.item.author,
+                      isAudiobook: widget.item.isAudiobook,
+                      imageUrl: widget.item.coverUrl,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 9, 5, 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.item.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontSize: 13,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            widget.item.author,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 11.5,
+                            ),
+                          ),
+                          const Spacer(),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: scheme.primaryContainer
+                                        .withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    widget.item.primaryGenre,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.2,
+                                      color: scheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                widget.item.isAudiobook
+                                    ? Icons.headphones_rounded
+                                    : Icons.auto_stories_outlined,
+                                size: 13,
+                                color: AppTheme.mutedColor,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

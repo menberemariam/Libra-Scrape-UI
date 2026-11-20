@@ -2,7 +2,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../models/item_model.dart';
-import '../../models/pagination_response.dart';
 import '../../services/api_service.dart';
 
 part 'items_event.dart';

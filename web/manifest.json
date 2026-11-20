@@ -1,12 +1,12 @@
 {
-    "name": "libra_scarpe",
-    "short_name": "libra_scarpe",
+    "name": "Libra — Free Digital Library",
+    "short_name": "Libra",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#F6F7FB",
+    "theme_color": "#312E81",
+    "description": "Read, listen and keep thousands of classic books and audiobooks — free, forever.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

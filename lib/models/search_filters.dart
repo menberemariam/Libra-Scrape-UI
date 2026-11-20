@@ -39,12 +39,15 @@ class SearchFilters {
     String? author,
     int? limit,
     int? offset,
+    bool clearType = false,
+    bool clearGenre = false,
+    bool clearAuthor = false,
   }) {
     return SearchFilters(
       query: query ?? this.query,
-      type: type ?? this.type,
-      genre: genre ?? this.genre,
-      author: author ?? this.author,
+      type: clearType ? null : (type ?? this.type),
+      genre: clearGenre ? null : (genre ?? this.genre),
+      author: clearAuthor ? null : (author ?? this.author),
       limit: limit ?? this.limit,
       offset: offset ?? this.offset,
     );

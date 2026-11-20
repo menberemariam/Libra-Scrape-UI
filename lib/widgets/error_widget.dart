@@ -13,44 +13,71 @@ class CustomErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Oops! Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: scheme.errorContainer.withValues(alpha: 0.7),
               ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                size: 34,
+                color: scheme.error,
+              ),
+            ),
+            const SizedBox(height: 22),
+            Text(
+              'We couldn’t load the library',
+              style: theme.textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 380),
+              child: Text(
+                _readableMessage(message),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton.icon(
+              FilledButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Try again'),
               ),
             ],
           ],
         ),
       ),
     );
+  }
+
+  /// Keeps internal error prefixes out of the customer-facing message.
+  String _readableMessage(String raw) {
+    var text = raw
+        .replaceFirst('ApiException: ', '')
+        .replaceFirst('NetworkException: ', '')
+        .replaceFirst('NotFoundException: ', '');
+    if (text.startsWith('Error loading items: ')) {
+      text = text.substring('Error loading items: '.length);
+    }
+    if (text.length > 220) {
+      text = '${text.substring(0, 220)}…';
+    }
+    return text;
   }
 }

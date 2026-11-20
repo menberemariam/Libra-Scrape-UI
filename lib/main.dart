@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'core/theme/app_theme.dart';
-import 'core/constants/app_constants.dart';
-import 'core/router/app_router.dart';
-import 'core/providers/books_provider.dart';
+import 'blocs/items/items_bloc.dart';
+import 'blocs/search/search_bloc.dart';
+import 'config/app_router.dart';
+import 'config/app_theme.dart';
+import 'services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Hive for local storage
   await Hive.initFlutter();
-  
-  // Set system UI overlay style
+
+  // Transparent status bar; icons follow the light theme.
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -23,13 +23,7 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
-  // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  
+
   runApp(const LibraScrapeApp());
 }
 
@@ -38,39 +32,35 @@ class LibraScrapeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(375, 812), // iPhone 12 Pro dimensions
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider(
-              create: (_) => BooksProvider(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => ItemsBloc(apiService: ApiService())
+            ..add(const LoadItems()),
+        ),
+        BlocProvider(
+          create: (_) => SearchBloc(apiService: ApiService()),
+        ),
+      ],
+      child: MaterialApp.router(
+        title: 'Libra — Free Digital Library',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        routerConfig: AppRouter.router,
+        debugShowCheckedModeBanner: false,
+        builder: (context, widget) {
+          // Keep type readable without letting OS scaling break layouts.
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(
+                MediaQuery.of(context).textScaler.scale(1.0).clamp(0.85, 1.2),
+              ),
             ),
-            // Add more providers here as needed
-          ],
-          child: MaterialApp.router(
-            title: AppConstants.appName,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
-            routerConfig: AppRouter.router,
-            debugShowCheckedModeBanner: false,
-            builder: (context, widget) {
-              // Ensure text scaling doesn't break the UI
-              return MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: TextScaler.linear(
-                    MediaQuery.of(context).textScaler.scale(1.0).clamp(0.8, 1.2),
-                  ),
-                ),
-                child: widget!,
-              );
-            },
-          ),
-        );
-      },
+            child: widget!,
+          );
+        },
+      ),
     );
   }
 }
